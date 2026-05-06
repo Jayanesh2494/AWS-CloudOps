@@ -1,0 +1,7 @@
+{
+  "ServerlessApiStack": {
+    "ApiUrl": "https://xt93c1d9sa.execute-api.ap-south-1.amazonaws.com/prod/",
+    "HelloApiEndpoint91438085": "https://xt93c1d9sa.execute-api.ap-south-1.amazonaws.com/prod/",
+    "ApiId": "xt93c1d9sa"
+  }
+}

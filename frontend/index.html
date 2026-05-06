@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS CloudOps Chatbot</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Dark Mode Color Palette */
+            --bg-color: #0f172a;
+            /* Slate 900 */
+            --bg-glass: rgba(30, 41, 59, 0.7);
+            /* Slate 800 with opacity */
+            --bg-glass-hover: rgba(51, 65, 85, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.1);
+
+            --text-primary: #f8fafc;
+            /* Slate 50 */
+            --text-secondary: #94a3b8;
+            /* Slate 400 */
+            --text-muted: #64748b;
+
+            --accent-primary: #3b82f6;
+            /* Blue 500 */
+            --accent-hover: #2563eb;
+            /* Blue 600 */
+            --accent-success: #10b981;
+            /* Emerald 500 */
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+
+            --user-msg-bg: #2563eb;
+            --bot-msg-bg: rgba(51, 65, 85, 0.9);
+
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Layout Container */
+        .app-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Glass Panel Reusable Classes */
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-glass);
+            padding: 24px;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0 20px 0;
+        }
+
+        .header .logo {
+            font-size: 2.5rem;
+            color: #ff9900;
+            /* AWS Orange */
+            filter: drop-shadow(0 0 10px rgba(255, 153, 0, 0.4));
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Mode Selection */
+        .mode-selection h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .mode-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .mode-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .mode-option.selected {
+            border-color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .mode-option input[type="radio"] {
+            margin-top: 4px;
+            margin-right: 12px;
+            accent-color: var(--accent-primary);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .mode-description h4 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .mode-description p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Context Panels (Onboarding, Policy, Deploy) */
+        .onboarding-panel,
+        .policy-section,
+        .deploy-section {
+            display: none;
+            animation: slideInLeft 0.4s ease forwards;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .glass-panel h4 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-panel h4 {
+            color: var(--accent-warning);
+        }
+
+        .success-panel h4 {
+            color: var(--accent-success);
+        }
+
+        .onboarding-panel h4 {
+            color: var(--accent-primary);
+        }
+
+        /* Form Inputs */
+        .role-input-group {
+            margin-bottom: 16px;
+        }
+
+        .role-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Buttons */
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 0.95rem;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .primary-btn {
+            background: var(--accent-primary);
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .primary-btn:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border-glass);
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .highlight-btn {
+            background: var(--accent-success);
+            color: #000;
+            width: 100%;
+            padding: 14px;
+            font-size: 1.05rem;
+            margin-top: 16px;
+        }
+
+        .highlight-btn:hover {
+            background: #059669;
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Main Content & Chat */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            /* Prevents flex blowout */
+        }
+
+        .chat-container {
+            display: none;
+            /* Toggled via JS */
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: var(--radius-lg);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            animation: messagePopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform-origin: bottom;
+            word-wrap: break-word;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes messagePopIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Message Formatting (Markdown/Links) */
+        .bot-message strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .bot-message a {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dotted #60a5fa;
+            transition: color 0.2s;
+        }
+
+        .bot-message a:hover {
+            color: #93c5fd;
+        }
+
+        .bot-message br {
+            display: block;
+            margin: 6px 0;
+            content: "";
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 14px 18px;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Input Area at Bottom */
+        .input-area {
+            margin-top: 10px;
+            padding: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-group textarea {
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(0, 0, 0, 0.4);
+            line-height: 1.4;
+        }
+
+        .send-btn {
+            background: var(--accent-primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 0;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+            /* Alignment with textbox */
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            background: var(--accent-hover);
+        }
+
+        .attach-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid var(--border-glass);
+            padding: 0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .attach-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Policy specific styles */
+        #policyContent {
+            margin: 15px 0;
+        }
+
+        .policy-json {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-glass);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #a7f3d0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Terminal/Markdown Body */
+        .markdown-body {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-glass);
+        }
+
+        .markdown-body strong {
+            color: var(--text-primary);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            animation: modalFadeIn 0.3s ease forwards;
+        }
+
+        @keyframes modalFadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            transform: scale(0.95);
+            animation: modalPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes modalPopIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .modal-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-glass);
+            color: #fff;
+        }
+
+        .modal-content pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--accent-primary);
+            white-space: pre-wrap;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-glass);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .app-wrapper {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+                /* Don't let sidebar take over the whole screen */
+            }
+
+            .main-content {
+                height: 55vh;
+            }
+        }
+
+        /* Landing Page */
+        .landing-page {
+            max-width: 900px;
+            width: 100%;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .landing-header {
+            margin-bottom: 50px;
+        }
+
+        .landing-header .logo {
+            font-size: 5rem;
+            color: #ff9900;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(255, 153, 0, 0.4));
+        }
+
+        .landing-header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .landing-header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .landing-options {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .landing-card {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .landing-card:hover {
+            background: rgba(51, 65, 85, 0.8);
+            border-color: var(--accent-primary);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .landing-card:hover::before {
+            opacity: 1;
+        }
+
+        .landing-card .card-icon {
+            font-size: 3.5rem;
+            color: var(--accent-primary);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .landing-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        .landing-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .landing-card p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .landing-options {
+                flex-direction: column;
+            }
+        }
+        /* Workflow Visualizer Overlay */
+        .workflow-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInOverlay 0.3s ease-out forwards;
+        }
+
+        .workflow-overlay.fading-out {
+            animation: fadeOutOverlay 0.4s ease-in forwards;
+        }
+
+        .workflow-visualizer {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.15), 0 0 20px rgba(0,0,0,0.5);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .workflow-visualizer.overlay-mode {
+            width: 90%;
+            max-width: 600px;
+            transform: scale(0.95);
+            animation: scaleInVisualizer 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .wf-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .wf-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            opacity: 0.4;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .wf-step.active, .wf-step.completed, .wf-step.failed {
+            opacity: 1;
+        }
+
+        .wf-icon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 32px;
+            height: 100%;
+        }
+
+        .wf-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.4s ease;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .wf-step.active .wf-icon {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+            animation: pulse-icon 1.5s infinite;
+        }
+
+        .wf-step.completed .wf-icon {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+            color: #111;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .wf-step.failed .wf-icon {
+            background: var(--accent-danger);
+            border-color: var(--accent-danger);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .wf-line {
+            width: 2px;
+            flex-grow: 1;
+            min-height: 25px;
+            background: rgba(255,255,255,0.08);
+            transition: all 0.5s ease;
+        }
+
+        .wf-step.completed .wf-line {
+            background: var(--accent-success);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .wf-content {
+            padding-top: 4px;
+            padding-bottom: 20px;
+        }
+
+        .wf-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .wf-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        @keyframes pulse-icon {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+            70% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(8px); }
+        }
+        @keyframes fadeOutOverlay {
+            from { opacity: 1; backdrop-filter: blur(8px); }
+            to { opacity: 0; backdrop-filter: blur(0px); visibility: hidden; }
+        }
+        @keyframes scaleInVisualizer {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Landing Page -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-header">
+            <div class="logo">
+                <i class="fa-brands fa-aws"></i>
+            </div>
+            <h1>AWS CloudOps Chatbot</h1>
+            <p>Deploy cloud infrastructure through intelligent AI-powered conversations. Choose your deployment
+                environment to get started.</p>
+        </div>
+
+        <div class="landing-options">
+            <div class="landing-card" onclick="enterApp('our')">
+                <div class="card-icon"><i class="fa-solid fa-server"></i></div>
+                <h3>Our AWS Account</h3>
+                <p>We manage the infrastructure. Resources will be created in our secure AWS environment. Best for quick
+                    testing and evaluation.</p>
+            </div>
+            <div class="landing-card" onclick="enterApp('user')">
+                <div class="card-icon"><i class="fa-solid fa-key"></i></div>
+                <h3>My AWS Account</h3>
+                <p>You own and control the infrastructure. We'll guide you through secure IAM setup and deployment in
+                    your own AWS environment.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="appWrapper" class="app-wrapper" style="display: none;">
+        <!-- Sidebar: Settings and Context -->
+        <aside class="sidebar">
+            <div class="header">
+                <div class="logo">
+                    <i class="fa-brands fa-aws"></i>
+                </div>
+                <div>
+                    <h1>CloudOps Bot</h1>
+                    <p>AI Infrastructure Deployment</p>
+                </div>
+            </div>
+
+            <!-- Deployment Mode Selection -->
+            <div class="mode-selection glass-panel">
+                <h3><i class="fa-solid fa-server"></i> Deployment Environment</h3>
+
+                <div class="mode-option" data-mode="our">
+                    <input type="radio" name="accountMode" value="our" checked>
+                    <div class="mode-description">
+                        <h4>Our AWS Account</h4>
+                        <p>Managed secure environment.</p>
+                    </div>
+                </div>
+
+                <div class="mode-option" data-mode="user">
+                    <input type="radio" name="accountMode" value="user">
+                    <div class="mode-description">
+                        <h4>My AWS Account</h4>
+                        <p>Bring your own account.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Account Onboarding Panel -->
+            <div id="onboardingPanel" class="onboarding-panel glass-panel">
+                <h4><i class="fa-solid fa-lock"></i> Account Setup</h4>
+
+                <p><strong>Step 1:</strong> Setup IAM Role</p>
+                <button class="setup-button secondary-btn" onclick="launchCloudFormation()"><i
+                        class="fa-solid fa-book-open"></i> View Instructions</button>
+
+                <p><strong>Step 2:</strong> Provide Details</p>
+
+                <div class="role-input-group">
+                    <label for="roleArn">Role ARN:</label>
+                    <input type="text" id="roleArn" placeholder="arn:aws:iam::.../CloudOpsChatbotRole">
+                </div>
+
+                <div class="role-input-group">
+                    <label for="externalId">External ID:</label>
+                    <input type="text" id="externalId" placeholder="cloudops-chatbot-2024"
+                        value="cloudops-chatbot-2024">
+                </div>
+
+                <div class="role-input-group">
+                    <label for="awsRegion">AWS Region:</label>
+                    <input type="text" id="awsRegion" placeholder="us-east-1" value="us-east-1">
+                </div>
+
+                <button class="validate-button primary-btn" onclick="validateRole()"><i
+                        class="fa-solid fa-check-circle"></i> Validate Access</button>
+                <div id="validationStatus"></div>
+            </div>
+
+            <!-- Policy Requirements Section -->
+            <div id="policySection" class="policy-section glass-panel warning-panel">
+                <h4><i class="fa-solid fa-key"></i> Required Permissions</h4>
+                <p id="policyDescription">Add this inline policy to your role:</p>
+
+                <div id="policyContent">
+                    <!-- Policy content will be inserted here -->
+                </div>
+
+                <button class="setup-button primary-btn" onclick="confirmPolicyAttached()"><i
+                        class="fa-solid fa-check"></i> Policy Attached</button>
+            </div>
+
+            <!-- Deployment Section -->
+            <div id="deploySection" class="deploy-section glass-panel success-panel">
+                <h4><i class="fa-solid fa-rocket"></i> Ready to Deploy</h4>
+
+                <div id="deployDetails" class="deploy-details markdown-body">
+                    <!-- Deployment details will be shown here -->
+                </div>
+
+                <button class="deploy-btn highlight-btn" onclick="deployResources()"><i
+                        class="fa-solid fa-cloud-arrow-up"></i> Deploy Now</button>
+                <div id="deployResult"></div>
+            </div>
+        </aside>
+
+        <!-- Main Content: Chat Interface -->
+        <main class="main-content">
+            <div id="chatContainer" class="chat-container">
+                <div id="chatMessages" class="chat-messages">
+                    <!-- Messages will be injected here -->
+                </div>
+
+                <!-- Typing indicator hidden by default, appended to chatMessages in JS -->
+                <div id="typingIndicator" class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+
+                <div class="input-area glass-panel">
+                    <div class="input-group">
+                        <input type="file" id="fileUpload" style="display: none;" onchange="handleFileUpload(event)">
+                        <button onclick="document.getElementById('fileUpload').click()" class="attach-btn" title="Attach File">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <textarea id="messageInput"
+                            placeholder="Describe the infrastructure you want to deploy... (e.g. 'Deploy an API Gateway with Lambda')"
+                            rows="1"></textarea>
+                        <button onclick="sendMessage()" class="send-btn" title="Send Message">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Workflow Simulator for Visualization
+        class WorkflowSimulator {
+            constructor(containerElement, actionType) {
+                this.container = containerElement;
+                this.actionType = actionType;
+                this.steps = this.getStepsForAction();
+                this.currentStep = 0;
+                this.timer = null;
+                this.elementId = 'wf-' + Date.now();
+                this.render();
+            }
+
+            getStepsForAction() {
+                if (this.actionType === 'deploy') {
+                    return [
+                        { title: 'Validating Template', subtitle: 'Checking parameter requirements', duration: 1500 },
+                        { title: 'Preparing Environment', subtitle: 'Setting up AWS session & IAM roles', duration: 2500 },
+                        { title: 'Provisioning Resources', subtitle: 'Deploying AWS CloudFormation stacks...', duration: 5000 },
+                        { title: 'Finalizing Deployment', subtitle: 'Retrieving endpoints and outputs', duration: null }
+                    ];
+                } else if (this.actionType === 'bucket') {
+                    return [
+                        { title: 'Validating Request', subtitle: 'Checking IAM permissions', duration: 1000 },
+                        { title: 'Provisioning S3 Bucket', subtitle: 'Creating bucket in AWS account', duration: 2500 },
+                        { title: 'Applying Configuration', subtitle: 'Setting up bucket policies', duration: null }
+                    ];
+                } else if (this.actionType === 'bucket_delete') {
+                    return [
+                        { title: 'Validating Request', subtitle: 'Verifying bucket existence', duration: 1000 },
+                        { title: 'Emptying Bucket', subtitle: 'Removing all objects', duration: 2500 },
+                        { title: 'Deleting Bucket', subtitle: 'Removing S3 bucket', duration: null }
+                    ];
+                } else if (this.actionType === 'ec2') {
+                    return [
+                        { title: 'Validating Instance', subtitle: 'Checking AMI and type', duration: 1000 },
+                        { title: 'Creating Security Group', subtitle: 'Setting up network access', duration: 2000 },
+                        { title: 'Provisioning EC2', subtitle: 'Launching EC2 instance', duration: 4000 },
+                        { title: 'Running Status Checks', subtitle: 'Waiting for EC2 to be ready', duration: null }
+                    ];
+                } else if (this.actionType === 'ec2_delete') {
+                    return [
+                        { title: 'Locating Instance', subtitle: 'Finding EC2 instance by ID', duration: 1000 },
+                        { title: 'Stopping Services', subtitle: 'Gracefully shutting down', duration: 2000 },
+                        { title: 'Terminating', subtitle: 'Terminating EC2 instance', duration: null }
+                    ];
+                }
+                return [
+                    { title: 'Initiating Process', subtitle: 'Starting workflow request', duration: 1500 },
+                    { title: 'Executing Action', subtitle: 'Waiting for cloud resources', duration: 4000 },
+                    { title: 'Finalizing', subtitle: 'Wrapping up', duration: null }
+                ];
+            }
+
+            render() {
+                const isOverlay = this.container.id === 'chatContainer';
+                
+                let innerHtml = `
+                    <div id="${this.elementId}" class="workflow-visualizer ${isOverlay ? 'overlay-mode' : ''}">
+                        <div class="wf-header"><i class="fa-solid fa-network-wired"></i> AWS Implementation Workflow</div>`;
+                
+                this.steps.forEach((step, idx) => {
+                    const isLast = idx === this.steps.length - 1;
+                    const stateClass = idx === 0 ? 'active' : '';
+                    const iconContent = idx === 0 ? '<i class="fa-solid fa-spinner fa-spin"></i>' : '<i class="fa-solid fa-circle"></i>';
+                    
+                    innerHtml += `
+                        <div id="${this.elementId}-step-${idx}" class="wf-step ${stateClass}">
+                            <div class="wf-icon-container">
+                                <div class="wf-icon">${iconContent}</div>
+                                ${!isLast ? `<div class="wf-line"></div>` : ''}
+                            </div>
+                            <div class="wf-content">
+                                <div class="wf-title">${step.title}</div>
+                                <div class="wf-subtitle">${step.subtitle}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                innerHtml += `</div>`;
+                
+                if (isOverlay) {
+                    const overlayDiv = document.createElement('div');
+                    overlayDiv.id = `${this.elementId}-overlay`;
+                    overlayDiv.className = 'workflow-overlay';
+                    overlayDiv.innerHTML = innerHtml;
+                    this.overlayElement = overlayDiv;
+                    this.container.appendChild(overlayDiv);
+                } else {
+                    this.container.innerHTML = innerHtml;
+                }
+                this.startSimulation();
+            }
+
+            startSimulation() {
+                const advanceStep = () => {
+                    if (this.currentStep >= this.steps.length - 1) return;
+                    
+                    const currentDuration = this.steps[this.currentStep].duration;
+                    if (!currentDuration) return;
+                    
+                    this.timer = setTimeout(() => {
+                        this.finishStep(this.currentStep, 'completed');
+                        this.currentStep++;
+                        this.activateStep(this.currentStep);
+                        advanceStep();
+                    }, currentDuration);
+                };
+                
+                advanceStep();
+            }
+
+            finishStep(idx, status) {
+                const stepEl = document.getElementById(`${this.elementId}-step-${idx}`);
+                if (!stepEl) return;
+                
+                stepEl.classList.remove('active');
+                stepEl.classList.add(status);
+                
+                const iconEl = stepEl.querySelector('.wf-icon');
+                if (status === 'completed') {
+                    iconEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+                } else if (status === 'failed') {
+                    iconEl.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                }
+            }
+
+            activateStep(idx) {
+                const stepEl = document.getElementById(`${this.elementId}-step-${idx}`);
+                if (!stepEl) return;
+                
+                stepEl.classList.add('active');
+                const iconEl = stepEl.querySelector('.wf-icon');
+                iconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            }
+
+            completeSimulation(success) {
+                clearTimeout(this.timer);
+                const status = success ? 'completed' : 'failed';
+                this.finishStep(this.currentStep, status);
+                
+                if (success) {
+                    for (let i = this.currentStep + 1; i < this.steps.length; i++) {
+                        this.activateStep(i);
+                        this.finishStep(i, 'completed');
+                    }
+                }
+            }
+        }
+
+        // API Configuration
+        const API_BASE_URL = 'http://127.0.0.1:5000/api';
+
+        let currentMode = 'our';
+        let roleArn = '';
+        let externalId = 'cloudops-chatbot-2024';
+        let awsRegion = 'us-east-1';
+        let currentIntent = null;
+        let requiredPolicy = null;
+        let isRoleValidated = false;
+        let currentTemplateName = null;
+        let currentTemplateParams = null;
+        let sessionId = null; // Session ID for conversation state
+        let pendingFileUpload = null;
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                pendingFileUpload = {
+                    name: file.name,
+                    data: base64Data,
+                    mime: file.type || "application/octet-stream"
+                };
+                
+                const messageInput = document.getElementById('messageInput');
+                messageInput.value = `Upload file: ${file.name}`;
+                sendMessage();
+                
+                document.getElementById('fileUpload').value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Generate unique session ID
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Handle mode selection
+        document.querySelectorAll('.mode-option').forEach(option => {
+            option.addEventListener('click', function () {
+                const mode = this.dataset.mode;
+                document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                document.querySelector(`input[value="${mode}"]`).checked = true;
+                handleModeChange(mode);
+            });
+        });
+
+        function handleModeChange(mode) {
+            currentMode = mode;
+            sessionId = generateSessionId(); // Generate new session for each mode change
+
+            if (mode === 'user') {
+                document.getElementById('onboardingPanel').style.display = 'block';
+                document.getElementById('chatContainer').style.display = 'none';
+                document.getElementById('policySection').style.display = 'none';
+                document.getElementById('deploySection').style.display = 'none';
+                isRoleValidated = false;
+            } else {
+                document.getElementById('onboardingPanel').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'flex';
+                document.getElementById('policySection').style.display = 'none';
+                document.getElementById('deploySection').style.display = 'none';
+                isRoleValidated = true; // OUR mode doesn't need validation
+            }
+        }
+
+        function launchCloudFormation() {
+            // Show detailed step-by-step guide instead of just opening CloudFormation
+            const guide = `
+# ✅ USER ROLE CREATION GUIDE (For "Deploy in MY AWS Account" Mode)
+
+## 🎯 Goal
+To allow the CloudOps Chatbot to deploy AWS resources in **your AWS account**, you must create **one IAM Role** and share only the **Role ARN** (no access keys).
+
+## ✅ Step-by-Step Instructions
+
+### Step 1: Open IAM Role Creation Page
+1. Login to AWS Console
+2. Search **IAM**
+3. Go to: **IAM → Roles → Create role**
+
+### Step 2: Choose Trusted Entity (MOST IMPORTANT)
+On "Select trusted entity" page:
+- ✅ Choose: **AWS account**
+- 📌 Do NOT choose "AWS service"
+- Click **Next**
+
+### Step 3: Configure Which AWS Account Can Assume This Role
+- ✅ Select: **Another AWS account**
+- Enter Account ID: **553015941729**
+- Click **Next**
+
+### Step 4: Add External ID (Security Required)
+- ✅ Enable: **Require external ID**
+- Enter: **cloudops-chatbot-2024**
+- Click **Next**
+
+### Step 5: Add Permissions (Choose Minimal First)
+Search and attach these managed policies:
+- ✅ AmazonLexFullAccess
+- ✅ AmazonBedrockFullAccess
+- Click **Next**
+
+### Step 6: Role Name and Create
+- Role name: **CloudOpsChatbotRole**
+- Description: "Role used by CloudOps Chatbot to analyze and deploy AWS templates securely"
+- Click **Create role**
+
+### Step 7: Copy Role ARN
+- Open the role: CloudOpsChatbotRole
+- Copy **Role ARN** (format: arn:aws:iam::<YOUR_ACCOUNT_ID>:role/CloudOpsChatbotRole)
+
+### Step 8: Return to Chatbot
+- Paste the Role ARN in the field below
+- External ID: cloudops-chatbot-2024
+- Click **Validate Role Access**
+
+## ⚠️ Important Notes
+- ❌ Do NOT share access keys or secret keys
+- ✅ Only share Role ARN and External ID
+- 🔄 One role handles all deployments (policies added dynamically)
+
+## 🚀 Ready to proceed?
+Follow the steps above, then paste your Role ARN below and click Validate.
+            `;
+
+            // Create modal dialog to show the guide
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+
+            modalContent.innerHTML = `
+                <h2>🔐 Create IAM Role for Your AWS Account</h2>
+                <pre>${guide}</pre>
+                <div class="modal-buttons">
+                    <button onclick="this.closest('.modal').remove()">Close</button>
+                    <button onclick="openCloudFormationConsole(); this.closest('.modal').remove()">🚀 Open AWS Console</button>
+                </div>
+            `;
+
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        function openCloudFormationConsole() {
+            // Open IAM Roles page directly
+            const iamRolesUrl = 'https://console.aws.amazon.com/iam/home#/roles';
+            window.open(iamRolesUrl, '_blank');
+        }
+
+        async function validateRole() {
+            const arn = document.getElementById('roleArn').value.trim();
+            const extId = document.getElementById('externalId').value.trim();
+            const region = document.getElementById('awsRegion').value.trim();
+
+            if (!arn) {
+                showStatus('validationStatus', 'Please enter a Role ARN', 'error');
+                return;
+            }
+
+            showStatus('validationStatus', '<div class="spinner"></div>Validating role access...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/set-mode`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roleArn: arn,
+                        externalId: extId,
+                        region: region
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    roleArn = arn;
+                    externalId = extId;
+                    awsRegion = region;
+                    isRoleValidated = true;
+                    showStatus('validationStatus', `✅ ${data.message} (Account: ${data.assumedAccount})`, 'success');
+                    document.getElementById('chatContainer').style.display = 'flex';
+                } else {
+                    showStatus('validationStatus', `❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus('validationStatus', `❌ Network error: Failed to fetch. Please ensure the backend server is running.`, 'error');
+            }
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status-message status-${type}"><i class="fa-solid ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i> ${message}</div>`;
+        }
+
+        async function sendMessage() {
+            if (currentMode === 'user' && !isRoleValidated) {
+                addMessage('Please validate your IAM role first before chatting.', 'bot');
+                return;
+            }
+
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            // Check if this might be an action based on heuristics
+            const msgLower = message.toLowerCase();
+            let likelyAction = null;
+            
+            if (msgLower === 'confirm' || msgLower === 'yes') {
+                if (currentIntent) {
+                    const ciLower = currentIntent.toLowerCase();
+                    if (ciLower.includes('delete') || ciLower.includes('terminate')) {
+                        if (ciLower.includes('bucket') || ciLower.includes('s3')) likelyAction = 'bucket_delete';
+                        else if (ciLower.includes('instance') || ciLower.includes('ec2')) likelyAction = 'ec2_delete';
+                        else likelyAction = 'deploy';
+                    } else if (ciLower.includes('bucket')) {
+                        likelyAction = 'bucket';
+                    } else if (ciLower.includes('instance') || ciLower.includes('ec2')) {
+                        likelyAction = 'ec2';
+                    } else {
+                        likelyAction = 'deploy';
+                    }
+                } else {
+                    likelyAction = 'deploy';
+                }
+            } else if (msgLower.includes('deploy') || msgLower.includes('create') || msgLower.includes('make') || msgLower.includes('start') || msgLower.includes('launch') || msgLower.includes('run')) {
+                if (msgLower.includes('bucket') || msgLower.includes('s3')) likelyAction = 'bucket';
+                else if (msgLower.includes('ec2') || msgLower.includes('instance') || msgLower.includes('server')) likelyAction = 'ec2';
+                else likelyAction = 'deploy';
+            } else if (msgLower.includes('delete') || msgLower.includes('terminate') || msgLower.includes('remove') || msgLower.includes('stop')) {
+                 if (msgLower.includes('bucket') || msgLower.includes('s3')) likelyAction = 'bucket_delete';
+                 else if (msgLower.includes('ec2') || msgLower.includes('instance')) likelyAction = 'ec2_delete';
+                 else likelyAction = 'deploy'; 
+            }
+            
+            // Show standard typing indicator initially
+            const typingIndicator = document.getElementById('typingIndicator');
+            const messagesDiv = document.getElementById('chatMessages');
+            typingIndicator.style.display = 'flex';
+            messagesDiv.appendChild(typingIndicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            let workflowSim = null;
+            let wfContainer = null;
+            let workflowShowTimer = null;
+
+            if (likelyAction) {
+                workflowShowTimer = setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                    const rootContainer = document.getElementById('chatContainer');
+                    workflowSim = new WorkflowSimulator(rootContainer, likelyAction);
+                }, 1000); // Wait 1 second before assuming it's a long action to avoid flashing on quick replies
+            }
+
+            try {
+                const payload = {
+                    session_id: sessionId,
+                    message: message,
+                    accountMode: currentMode
+                };
+
+                if (pendingFileUpload) {
+                    payload.file_upload = pendingFileUpload;
+                    pendingFileUpload = null;
+                }
+
+                if (currentMode === 'user') {
+                    payload.roleArn = roleArn;
+                    payload.externalId = externalId;
+                    payload.region = awsRegion;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // Clear timer if it hasn't fired yet
+                if (workflowShowTimer) clearTimeout(workflowShowTimer);
+
+                // Hide typing indicator in all cases
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                if (response.ok) {
+                    // Update the workflow simulator if it's active
+                    if (workflowSim) {
+                        if (data.action_taken) {
+                            const isSuccess = !data.error && (!data.action_result || (data.action_result && data.action_result.success !== false && !data.action_result.error));
+                            workflowSim.completeSimulation(isSuccess);
+                            await new Promise(r => setTimeout(r, 1200));
+                            if (workflowSim.overlayElement) {
+                                workflowSim.overlayElement.classList.add('fading-out');
+                                setTimeout(() => workflowSim.overlayElement.remove(), 400);
+                            }
+                        } else {
+                            // Guessed wrong, it was a fast conversational message! Hide the workflow UI.
+                            if (workflowSim.overlayElement) workflowSim.overlayElement.remove();
+                            workflowSim = null;
+                        }
+                    }
+
+                    addMessage(`🤖 ${data.botReply}`, 'bot');
+
+                    // Show deployment results if action was taken
+                    if (data.action_taken && data.action_result) {
+                        if (data.action_taken === 'deploy') {
+                            if (data.action_result.success) {
+                                addMessage(`✅ **Deployment Successful!**<br>
+                                    <strong>Deployment ID:</strong> ${data.action_result.deployment_id}<br>
+                                    <strong>Template:</strong> ${data.action_result.template}<br>
+                                    <strong>Size:</strong> ${data.action_result.size}<br>
+                                    <strong>API URL:</strong> <a href="${data.action_result.api_url}" target="_blank">${data.action_result.api_url}</a>`, 'bot');
+                            } else {
+                                addMessage(`❌ **Deployment Failed:** ${data.action_result.error}`, 'bot');
+                            }
+                        } else if (data.action_taken === 'list') {
+                            const count = data.action_result.count;
+                            addMessage(`📋 **Your Deployments (${count}):**<br>` +
+                                data.action_result.deployments.map(d =>
+                                    `• ${d.deployment_name} (${d.template_id}, ${d.status})`
+                                ).join('<br>'), 'bot');
+                        } else if (data.action_taken === 'describe') {
+                            if (data.action_result.error) {
+                                addMessage(`❌ ${data.action_result.error}`, 'bot');
+                            } else {
+                                const d = data.action_result;
+                                addMessage(`📋 **Deployment Details:**<br>
+                                    <strong>Name:</strong> ${d.deployment_name}<br>
+                                    <strong>Template:</strong> ${d.template_id}<br>
+                                    <strong>Status:</strong> ${d.status}<br>
+                                    <strong>Region:</strong> ${d.region}<br>
+                                    <strong>Created:</strong> ${d.created_at}`, 'bot');
+                            }
+                        } else if (data.action_taken === 'terminate') {
+                            if (data.action_result.success) {
+                                addMessage(`✅ **Termination Successful!**<br>
+                                    <strong>Deployment ID:</strong> ${data.action_result.deployment_id}<br>
+                                    <strong>Status:</strong> ${data.action_result.status}`, 'bot');
+                            } else {
+                                addMessage(`❌ **Termination Failed:** ${data.action_result.error}`, 'bot');
+                            }
+                        } else if (data.action_taken === 'update') {
+                            if (data.action_result.success) {
+                                addMessage(`✅ **Update Successful!**<br>
+                                    <strong>Deployment ID:</strong> ${data.action_result.deployment_id}<br>
+                                    <strong>New Size:</strong> ${data.action_result.new_size}`, 'bot');
+                            } else {
+                                addMessage(`❌ **Update Failed:** ${data.action_result.error}`, 'bot');
+                            }
+                        }
+                    }
+
+                    if (data.intent && data.intent !== 'Unknown') {
+                        currentIntent = data.intent;
+
+                        // Store template information if provided
+                        if (data.templateName) {
+                            currentTemplateName = data.templateName;
+                            currentTemplateParams = data.templateParams || {};
+                        }
+
+                        // Show policy requirements for user mode
+                        if (currentMode === 'user' && data.requiredPolicy) {
+                            showPolicyRequirements(data.requiredPolicy);
+                        } else if (currentMode === 'our' && data.templateName) {
+                            // For OUR mode, show deploy section directly
+                            showDeploySection(data.intent, data.templateParams || {});
+                        }
+                    }
+
+                    if (data.extractedParams && Object.keys(data.extractedParams).length > 0) {
+                        addMessage(`📋 Extracted parameters: ${JSON.stringify(data.extractedParams)}`, 'bot');
+                    }
+                } else {
+                    addMessage(`❌ Error: ${data.error}`, 'bot');
+                }
+            } catch (error) {
+                // Hide typing indicator on error
+                const typingIndicator = document.getElementById('typingIndicator');
+                typingIndicator.style.display = 'none';
+
+                addMessage(`❌ Network error: ${error.message}`, 'bot');
+            }
+        }
+
+        function showPolicyRequirements(policyData) {
+            requiredPolicy = policyData;
+            const policyContent = document.getElementById('policyContent');
+
+            policyContent.innerHTML = `
+                <div class="markdown-body">
+                    <strong>Deployment Policy Required</strong><br>
+                    <p>This IAM policy allows the chatbot to create and manage your AWS resources securely.</p>
+                </div>
+                <div class="policy-json" id="policyJson">${JSON.stringify(policyData, null, 2)}</div>
+                <button class="secondary-btn" onclick="copyPolicyJson()"><i class="fa-regular fa-copy"></i> Copy Policy JSON</button>
+            `;
+
+            document.getElementById('policySection').style.display = 'block';
+            document.getElementById('deploySection').style.display = 'none';
+        }
+
+        function copyPolicyJson() {
+            const policyJson = document.getElementById('policyJson').textContent;
+            navigator.clipboard.writeText(policyJson).then(() => {
+                alert('Policy JSON copied to clipboard!');
+            });
+        }
+
+        function confirmPolicyAttached() {
+            if (!currentIntent) {
+                alert('No deployment intent detected');
+                return;
+            }
+
+            document.getElementById('policySection').style.display = 'none';
+            showDeploySection(currentIntent, {});
+        }
+
+        function confirmDeployment() {
+            // Ask for confirmation before proceeding
+            if (confirm('Are you sure you want to proceed with the deployment? This will create resources in your AWS account.')) {
+                document.getElementById('policySection').style.display = 'none';
+                showDeploySection(currentIntent, {});
+            }
+        }
+
+        function showDeploySection(intent, params) {
+            const templateName = params.templateName || 'Unknown';
+            const size = params.size || 'Unknown';
+
+            document.getElementById('deployDetails').innerHTML = `
+                <strong>Template:</strong> ${templateName}<br>
+                <strong>Size:</strong> ${size}<br>
+                <strong>Intent:</strong> ${intent}<br>
+                <strong>Account Mode:</strong> ${currentMode === 'user' ? 'Your AWS Account' : 'Our AWS Account'}
+            `;
+
+            document.getElementById('deploySection').style.display = 'block';
+        }
+
+        async function deployResources() {
+            const deployResult = document.getElementById('deployResult');
+            const workflowSim = new WorkflowSimulator(deployResult, 'deploy');
+
+            try {
+                const payload = {
+                    intent: currentIntent,
+                    accountMode: currentMode,
+                    templateName: currentTemplateName || 'serverless-api',
+                    templateParams: currentTemplateParams || {},
+                    parameters: {}
+                };
+
+                if (currentMode === 'user') {
+                    payload.roleArn = roleArn;
+                    payload.externalId = externalId;
+                    payload.region = awsRegion;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/deploy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    workflowSim.completeSimulation(true);
+                    setTimeout(() => {
+                        deployResult.innerHTML = `
+                            <div class="status-message status-success" style="display:block; margin-top:15px;">
+                                <i class="fa-solid fa-check-circle"></i> Deployment successful!<br><br>
+                                <strong>Mode:</strong> ${data.mode}<br>
+                                <strong>Template:</strong> ${data.template}<br>
+                                <strong>API URL:</strong> <a href="${data.apiUrl}" target="_blank" style="color:var(--accent-primary);">${data.apiUrl}</a>
+                            </div>
+                        `;
+                    }, 1200);
+                } else {
+                    workflowSim.completeSimulation(false);
+                    setTimeout(() => {
+                        deployResult.innerHTML = `❌ Deployment failed: ${data.error}`;
+                    }, 1000);
+                }
+            } catch (error) {
+                workflowSim.completeSimulation(false);
+                setTimeout(() => {
+                    deployResult.innerHTML = `❌ Network error: ${error.message}`;
+                }, 1000);
+            }
+        }
+
+        function addMessage(text, sender) {
+            // Check if text has any raw simple links and replace them, skipping existing HTML logic
+            if (text && typeof text === 'string') {
+                // 1. Parse Markdown links: [text](url)
+                text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="text-decoration: underline; color: #60a5fa;">$1</a>');
+                
+                // 2. Parse Markdown bold: **text**
+                text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = text;
+                
+                function processNode(node) {
+                    if (node.nodeType === 3) { 
+                        const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
+                        if (urlRegex.test(node.nodeValue)) {
+                            const span = document.createElement('span');
+                            span.innerHTML = node.nodeValue.replace(urlRegex, '<a href="$1" target="_blank" style="text-decoration: underline; color: #60a5fa;">$1</a>');
+                            node.parentNode.replaceChild(span, node);
+                        }
+                    } else if (node.nodeType === 1 && node.nodeName !== 'A' && node.nodeName !== 'BUTTON') { 
+                        Array.from(node.childNodes).forEach(processNode);
+                    }
+                }
+                Array.from(tempDiv.childNodes).forEach(processNode);
+                text = tempDiv.innerHTML;
+            }
+
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Allow Enter key to send message (without shift)
+        document.getElementById('messageInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea
+        const tx = document.getElementById('messageInput');
+        tx.setAttribute('style', 'height:' + (tx.scrollHeight) + 'px;overflow-y:hidden;');
+        tx.addEventListener("input", OnInput, false);
+
+        function OnInput() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.value === '') {
+                this.style.height = 'auto';
+            }
+        }
+
+        // Initialize
+        // The display logic is now driven by enterApp() when user clicks a landing page card.
+
+        function enterApp(mode) {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('appWrapper').style.display = 'flex';
+
+            // Hide the redundant mode selection in the sidebar after selection
+            document.querySelector('.mode-selection').style.display = 'none';
+
+            // Still run handleModeChange to set internal logic modes appropriately
+            handleModeChange(mode);
+
+            // Add initial message if chat is empty
+            const messagesDiv = document.getElementById('chatMessages');
+            if (messagesDiv.children.length === 0) {
+                if (mode === 'our') {
+                    addMessage('👋 Hello! I\'m your AWS CloudOps assistant. You are using our hosted environment. Describe what you want to build!', 'bot');
+                } else {
+                    addMessage('👋 Hello! I\'m your AWS CloudOps assistant. Please complete the Account Setup in the sidebar first, then describe what you want to deploy!', 'bot');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudOps Chatbot Lex Bot",
+  "Resources": {
+    "CloudOpsChatbotLexBot": {
+      "Type": "AWS::Lex::Bot",
+      "Properties": {
+        "Name": "CloudOpsChatbot",
+        "Description": "Chatbot for AWS Cloud Operations",
+        "Intents": [
+          {
+            "IntentName": "DeployServerlessAPI",
+            "IntentVersion": "$LATEST",
+            "Description": "Intent to deploy a serverless API",
+            "SampleUtterances": [
+              "deploy serverless api",
+              "create api gateway with lambda",
+              "build serverless application",
+              "deploy lambda function with api"
+            ],
+            "FulfillmentActivity": {
+              "Type": "ReturnIntent"
+            },
+            "Slots": [
+              {
+                "Name": "ApiName",
+                "Description": "Name of the API to deploy",
+                "SlotType": "AMAZON.AlphaNumeric",
+                "SlotTypeVersion": "$LATEST",
+                "ValueElicitationPrompt": {
+                  "Messages": [
+                    {
+                      "ContentType": "PlainText",
+                      "Content": "What would you like to name your API?"
+                    }
+                  ],
+                  "MaxAttempts": 3
+                },
+                "Priority": 1,
+                "SlotConstraint": "Optional"
+              },
+              {
+                "Name": "Runtime",
+                "Description": "Lambda runtime environment",
+                "SlotType": "CustomSlotType",
+                "SlotTypeVersion": "$LATEST",
+                "ValueElicitationPrompt": {
+                  "Messages": [
+                    {
+                      "ContentType": "PlainText",
+                      "Content": "Which runtime would you like? (python3.9, python3.10, etc.)"
+                    }
+                  ],
+                  "MaxAttempts": 3
+                },
+                "Priority": 2,
+                "SlotConstraint": "Optional"
+              }
+            ]
+          }
+        ],
+        "SlotTypes": [
+          {
+            "Name": "CustomSlotType",
+            "Description": "Custom slot type for runtime selection",
+            "EnumerationValues": [
+              {
+                "Value": "python3.9"
+              },
+              {
+                "Value": "python3.10"
+              },
+              {
+                "Value": "python3.11"
+              },
+              {
+                "Value": "nodejs18.x"
+              },
+              {
+                "Value": "java11"
+              }
+            ]
+          }
+        ],
+        "ClarificationPrompt": {
+          "Messages": [
+            {
+              "ContentType": "PlainText",
+              "Content": "I'm sorry, I didn't understand. Can you please rephrase?"
+            }
+          ],
+          "MaxAttempts": 3
+        },
+        "AbortStatement": {
+          "Messages": [
+            {
+              "ContentType": "PlainText",
+              "Content": "Sorry, I'm having trouble understanding. Please try again later."
+            }
+          ]
+        },
+        "VoiceId": "Salli",
+        "ChildDirected": false,
+        "Locale": "en-US",
+        "ProcessBehavior": "BUILD"
+      }
+    },
+    "CloudOpsChatbotLexBotAlias": {
+      "Type": "AWS::Lex::BotAlias",
+      "Properties": {
+        "BotName": "CloudOpsChatbot",
+        "BotVersion": "$LATEST",
+        "Name": "prod",
+        "Description": "Production alias for CloudOps Chatbot"
+      },
+      "DependsOn": "CloudOpsChatbotLexBot"
+    }
+  },
+  "Outputs": {
+    "BotName": {
+      "Description": "Name of the created Lex bot",
+      "Value": {"Ref": "CloudOpsChatbotLexBot"},
+      "Export": {
+        "Name": "CloudOpsChatbotBotName"
+      }
+    },
+    "BotAlias": {
+      "Description": "Alias of the created Lex bot",
+      "Value": {"Ref": "CloudOpsChatbotLexBotAlias"},
+      "Export": {
+        "Name": "CloudOpsChatbotBotAlias"
+      }
+    }
+  }
+}

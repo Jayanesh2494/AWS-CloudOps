@@ -1,0 +1,91 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudOps Chatbot - IAM Role Setup",
+  "Parameters": {
+    "TrustedAccountId": {
+      "Type": "String",
+      "Description": "AWS Account ID that will assume this role (your chatbot backend account)",
+      "Default": ""
+    },
+    "ExternalId": {
+      "Type": "String",
+      "Description": "External ID for additional security (optional)",
+      "Default": "cloudops-chatbot-2024"
+    }
+  },
+  "Resources": {
+    "CloudOpsChatbotRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "CloudOpsChatbotRole",
+        "Description": "IAM Role for AWS CloudOps Chatbot to deploy resources in your account",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:aws:iam::${TrustedAccountId}:root"
+                }
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": {
+                    "Ref": "ExternalId"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "ManagedPolicyArns": [],
+        "Policies": [
+          {
+            "PolicyName": "CloudOpsChatbotMinimalPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:GetCallerIdentity",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "RoleArn": {
+      "Description": "ARN of the created IAM Role",
+      "Value": {
+        "Fn::GetAtt": ["CloudOpsChatbotRole", "Arn"]
+      },
+      "Export": {
+        "Name": "CloudOpsChatbotRoleArn"
+      }
+    },
+    "RoleName": {
+      "Description": "Name of the created IAM Role",
+      "Value": {
+        "Ref": "CloudOpsChatbotRole"
+      }
+    },
+    "TrustedAccountId": {
+      "Description": "Trusted Account ID",
+      "Value": {
+        "Ref": "TrustedAccountId"
+      }
+    },
+    "ExternalId": {
+      "Description": "External ID used",
+      "Value": {
+        "Ref": "ExternalId"
+      }
+    }
+  }
+}

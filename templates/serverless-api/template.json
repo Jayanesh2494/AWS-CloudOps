@@ -1,0 +1,64 @@
+{
+  "templateName": "serverless-api",
+  "displayName": "Serverless API",
+  "description": "REST API with Lambda backend",
+  "intents": ["DeployServerlessAPI", "CreateAPI", "BuildAPI"],
+  "supportsSizing": true,
+  "services": ["AWS::Lambda::Function", "AWS::ApiGateway::RestApi", "AWS::Logs::LogGroup"],
+  "parameters": {
+    "apiName": {
+      "type": "string",
+      "default": "CloudOpsAPI",
+      "description": "Name of the API Gateway"
+    },
+    "stageName": {
+      "type": "string",
+      "default": "dev",
+      "description": "API Gateway stage name"
+    },
+    "lambdaMemory": {
+      "type": "number",
+      "description": "Lambda function memory in MB"
+    },
+    "lambdaTimeout": {
+      "type": "number",
+      "description": "Lambda function timeout in seconds"
+    }
+  },
+  "sizePresets": {
+    "micro": {
+      "lambdaMemory": 128,
+      "lambdaTimeout": 10,
+      "description": "Low cost, minimal resources"
+    },
+    "medium": {
+      "lambdaMemory": 512,
+      "lambdaTimeout": 30,
+      "description": "Balanced performance and cost"
+    },
+    "large": {
+      "lambdaMemory": 1024,
+      "lambdaTimeout": 60,
+      "description": "High performance, handles heavy traffic"
+    }
+  },
+  "policyActions": [
+    "lambda:CreateFunction",
+    "lambda:UpdateFunctionCode",
+    "lambda:UpdateFunctionConfiguration",
+    "lambda:GetFunction",
+    "lambda:DeleteFunction",
+    "apigateway:POST",
+    "apigateway:PUT",
+    "apigateway:GET",
+    "apigateway:DELETE",
+    "logs:CreateLogGroup",
+    "logs:CreateLogStream",
+    "logs:PutLogEvents",
+    "cloudformation:CreateStack",
+    "cloudformation:UpdateStack",
+    "cloudformation:DeleteStack",
+    "cloudformation:DescribeStacks",
+    "cloudformation:ListStackResources"
+  ]
+}
